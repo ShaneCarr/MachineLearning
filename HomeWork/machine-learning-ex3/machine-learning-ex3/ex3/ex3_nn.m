@@ -40,7 +40,7 @@ m = size(X, 1);
 sel = randperm(size(X, 1));
 sel = sel(1:100);
 
-displayData(X(sel, :));
+#displayData(X(sel, :));
 
 fprintf('Program paused. Press enter to continue.\n');
 pause;
@@ -73,7 +73,8 @@ pause;
 %  Randomly permute examples
 rp = randperm(m);
 
-for i = 1:m
+%for i = 1:m
+for i = 1:1
     % Display 
     fprintf('\nDisplaying Example Image\n');
     displayData(X(rp(i), :));

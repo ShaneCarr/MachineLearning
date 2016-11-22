@@ -30,8 +30,8 @@ a1 = sigmoid([ones(m, 1) X] * Theta1');
 % We pass in A one (as we did with X for the second layer.
 a2 = sigmoid([ones(m, 1) a1] * Theta2');
 
+% returns the value that is max and the dimension. ( in one case for example if 4 is the biggest then thta index would be returned).
 [dummy, p] = max(a2, [], 2);
-
 
 
 % =========================================================================
