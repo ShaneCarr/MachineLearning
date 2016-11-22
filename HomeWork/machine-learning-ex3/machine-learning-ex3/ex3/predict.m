@@ -27,6 +27,8 @@ p = zeros(size(X, 1), 1);
 % G(Z(x)) = sigmoid Z(x) X*Theta'  (reversed with transpose to make column vector.
 a1 = sigmoid([ones(m, 1) X] * Theta1');
 
+
+%each a2 has a prediction for each letter or whatever so you 'd see 1x10 if you run ex3_nn
 % We pass in A one (as we did with X for the second layer.
 a2 = sigmoid([ones(m, 1) a1] * Theta2');
 
