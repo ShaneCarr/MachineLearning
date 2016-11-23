@@ -76,17 +76,15 @@ Theta2_grad = zeros(size(Theta2));
 % hx = sigmoid( X * theta);
 
 a1 = [ones(m, 1) X];
-
 z1 = a1 * Theta1';
-
 a2= sigmoid(z1);
 
 %add bias unit
- a2 = [ones(m, 1) a2];
+a2 = [ones(m, 1) a2];
+z2 = a2 * Theta2';
+a3 = sigmoid(z2);
 
-a3 = sigmoid(a2 * Theta2');
 hx=a3;
-size(hx);
 
 % size(a3) %% 5000 X 10 (so that is good)
 % J(theta) = 1/m*sum((-y_i)*log(h(x_i)-(1-y_i)*log(1-h(x_i))))+(lambda/2*m)*sum(theta_j)
@@ -113,7 +111,11 @@ for i=1:m,
   ymask(y(i),i)=1;
 end
 
-J = 1./m * sum(sum(( -ymask' * log(hx) - ( 1 - ymask' ) * log ( 1 - hx) ))) + thetaRegularizer;
+printf("sizes");
+size(ymask);
+size(hx);
+printf("sizes");
+J = 1./m * sum(sum(( -ymask' .* log(hx) - ( 1 - ymask' ) .* log ( 1 - hx) ))) + thetaRegularizer;
     
 
 
