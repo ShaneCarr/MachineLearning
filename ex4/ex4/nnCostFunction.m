@@ -64,10 +64,57 @@ Theta2_grad = zeros(size(Theta2));
 
 
 
+% Part 1: Feedforward the neural network and return the cost in the
+%         variable J. After implementing Part 1, you can verify that your
+%         cost function computation is correct by verifying the cost
+%         computed in ex4.m
 
+%
+% The parameters have dimensions that are sized for a neural network with 25 
+% units in the second layer and 10 output units (corresponding to the 10 digit classes).
 
+% hx = sigmoid( X * theta);
 
+a1 = [ones(m, 1) X];
 
+z1 = a1 * Theta1';
+
+a2= sigmoid(z1);
+
+%add bias unit
+ a2 = [ones(m, 1) a2];
+
+a3 = sigmoid(a2 * Theta2');
+hx=a3;
+size(hx);
+
+% size(a3) %% 5000 X 10 (so that is good)
+% J(theta) = 1/m*sum((-y_i)*log(h(x_i)-(1-y_i)*log(1-h(x_i))))+(lambda/2*m)*sum(theta_j)
+
+%eliminate theta0 that doesn' t factor into the regularization
+regularizationTheta = [];
+
+%or  this is faster, note we square regulartion term in cost function, leaving out the first term 
+regularizationTheta1 = Theta1(2:end).^2;
+regularizationTheta2 = Theta2(2:end).^2;
+
+printf("regularizationTheta1");
+size(regularizationTheta1);
+
+printf("regularizationTheta2");
+size(regularizationTheta2);
+
+thetaRegularizer = (lambda/(2*m) ) * (sum(regularizationTheta) + sum(regularizationTheta));
+
+%m vectors of size num_labels
+%for each use the value of y as index, and for the current "m vector" set that mask 
+ymask = zeros(num_labels, m); 
+for i=1:m,
+  ymask(y(i),i)=1;
+end
+
+J = 1./m * sum(sum(( -ymask' * log(hx) - ( 1 - ymask' ) * log ( 1 - hx) ))) + thetaRegularizer;
+    
 
 
 

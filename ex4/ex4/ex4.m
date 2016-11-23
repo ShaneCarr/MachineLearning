@@ -74,8 +74,7 @@ fprintf('\nFeedforward Using Neural Network ...\n')
 % Weight regularization parameter (we set this to 0 here).
 lambda = 0;
 
-J = nnCostFunction(nn_params, input_layer_size, hidden_layer_size, ...
-                   num_labels, X, y, lambda);
+J = nnCostFunction(nn_params, input_layer_size, hidden_layer_size, num_labels, X, y, lambda);
 
 fprintf(['Cost at parameters (loaded from ex4weights): %f '...
          '\n(this value should be about 0.287629)\n'], J);
@@ -170,7 +169,7 @@ fprintf(['\n\nCost at (fixed) debugging parameters (w/ lambda = 10): %f ' ...
 
 fprintf('Program paused. Press enter to continue.\n');
 pause;
-
+#{
 
 %% =================== Part 8: Training NN ===================
 %  You have now implemented all the code necessary to train a neural 
@@ -231,4 +230,4 @@ pred = predict(Theta1, Theta2, X);
 
 fprintf('\nTraining Set Accuracy: %f\n', mean(double(pred == y)) * 100);
 
-
+}#
