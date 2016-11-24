@@ -39,7 +39,7 @@ m = size(X, 1);
 sel = randperm(size(X, 1));
 sel = sel(1:100);
 
-displayData(X(sel, :));
+#displayData(X(sel, :));
 
 fprintf('Program paused. Press enter to continue.\n');
 pause;
@@ -169,7 +169,6 @@ fprintf(['\n\nCost at (fixed) debugging parameters (w/ lambda = 10): %f ' ...
 
 fprintf('Program paused. Press enter to continue.\n');
 pause;
-#{
 
 %% =================== Part 8: Training NN ===================
 %  You have now implemented all the code necessary to train a neural 
@@ -230,4 +229,4 @@ pred = predict(Theta1, Theta2, X);
 
 fprintf('\nTraining Set Accuracy: %f\n', mean(double(pred == y)) * 100);
 
-}#
+

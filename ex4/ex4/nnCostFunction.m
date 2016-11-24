@@ -96,42 +96,46 @@ regularizationTheta = [];
 regularizationTheta1 = Theta1(2:end).^2;
 regularizationTheta2 = Theta2(2:end).^2;
 
-printf("regularizationTheta1");
-size(regularizationTheta1);
+%thetaRegularizer = (lambda/(2*m) ) * (sum(regularizationTheta1) + sum(regularizationTheta2));
+t1 = Theta1(:,2:size(Theta1,2));
+t2 = Theta2(:,2:size(Theta2,2));
 
-printf("regularizationTheta2");
-size(regularizationTheta2);
-
-thetaRegularizer = (lambda/(2*m) ) * (sum(regularizationTheta) + sum(regularizationTheta));
-
+Reg = lambda  * (sum( sum ( t1.^ 2 )) + sum( sum ( t2.^ 2 ))) / (2*m);
 %m vectors of size num_labels
 %for each use the value of y as index, and for the current "m vector" set that mask 
+%one vs all.
+%m is 5k, 5k letters. Each example (vector 1 of 5k) has 10 rows. set the value of y 0-10 to select the right row
 ymask = zeros(num_labels, m); 
 for i=1:m,
   ymask(y(i),i)=1;
 end
-
-printf("sizes");
-size(ymask);
-size(hx);
-printf("sizes");
-J = 1./m * sum(sum(( -ymask' .* log(hx) - ( 1 - ymask' ) .* log ( 1 - hx) ))) + thetaRegularizer;
-    
+ 
+%ymask 10 X 5000 X  1  5000 X 10
+J = 1./m * sum(sum(( -ymask' .* log(hx) - ( 1 - ymask' ) .* log ( 1 - hx) ))) + Reg;
+   
 
 
+% for each training examle
+for t = 1:m 
+  % 5k X 1
+ ty = y(t);
+ 
+ % 5k x 400
+ tx = X(t);
+ a1 = tx;
+
+ #{
+ Theta1: 25 X 401  (25 out units each one has thetas for 400 pixel + one bias)
+ Theta2: 10 X 26  10 output units each has 26 to match the out units of the previous)
+ #}
+ 
+ a2 = sigmoid([ones(m, 1) a1] * Theta1'); 
+ a3 = sigmoid([ones(m, 1) a2] * Theta2');
+
+%[dummy, p] = max(a2, [], 2);
 
 
-
-
-
-
-
-
-
-
-% -------------------------------------------------------------
-
-% =========================================================================
+end
 
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
