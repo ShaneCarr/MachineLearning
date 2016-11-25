@@ -27,8 +27,10 @@ m = size(X, 1);
          
 % You need to return the following variables correctly 
 J = 0;
-Theta1_grad = zeros(size(Theta1));
-Theta2_grad = zeros(size(Theta2));
+
+%these guys accumulate the errors the big delta.
+BigDeltaTheta1Gradient = zeros(size(Theta1));
+BigDeltaTheta2Gradient= zeros(size(Theta2));
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: You should complete the code by working through the
@@ -40,9 +42,9 @@ Theta2_grad = zeros(size(Theta2));
 %         computed in ex4.m
 %
 % Part 2: Implement the backpropagation algorithm to compute the gradients
-%         Theta1_grad and Theta2_grad. You should return the partial derivatives of
-%         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
-%         Theta2_grad, respectively. After implementing Part 2, you can check
+%         BigDeltaTheta1Gradient and BigDeltaTheta2Gradient. You should return the partial derivatives of
+%         the cost function with respect to Theta1 and Theta2 in BigDeltaTheta1Gradient and
+%         BigDeltaTheta2Gradient, respectively. After implementing Part 2, you can check
 %         that your implementation is correct by running checkNNGradients
 %
 %         Note: The vector y passed into the function is a vector of labels
@@ -58,87 +60,111 @@ Theta2_grad = zeros(size(Theta2));
 %
 %         Hint: You can implement this around the code for
 %               backpropagation. That is, you can compute the gradients for
-%               the regularization separately and then add them to Theta1_grad
-%               and Theta2_grad from Part 2.
+%               the regularization separately and then add them to BigDeltaTheta1Gradient
+%               and BigDeltaTheta2Gradientfrom Part 2.
 %
 
 
+%% Part 1 implementation forward propigation.
 
-% Part 1: Feedforward the neural network and return the cost in the
-%         variable J. After implementing Part 1, you can verify that your
-%         cost function computation is correct by verifying the cost
-%         computed in ex4.m
-
-%
-% The parameters have dimensions that are sized for a neural network with 25 
-% units in the second layer and 10 output units (corresponding to the 10 digit classes).
-
-% hx = sigmoid( X * theta);
-
+% add bias unit
+% X is 5k X 400 ones(m,1) is 5kX1
+% so a1 is 5K x 401
 a1 = [ones(m, 1) X];
-z1 = a1 * Theta1';
-a2= sigmoid(z1);
 
-%add bias unit
-a2 = [ones(m, 1) a2];
-z2 = a2 * Theta2';
-a3 = sigmoid(z2);
+% intermediate value
+% Theta is already set up with bias unit. 
+% a1 -> 5000 X 401
+% this is the input
 
-hx=a3;
+% z2 -> 5000 X 25 
+% this is input when theta' is applied
+% theta1 -> 25 X 401 we take the tranpose though!)
+z2 = a1 * Theta1';
 
-% size(a3) %% 5000 X 10 (so that is good)
-% J(theta) = 1/m*sum((-y_i)*log(h(x_i)-(1-y_i)*log(1-h(x_i))))+(lambda/2*m)*sum(theta_j)
+% get the a2 our 
+% 5000 X 25
+a2 = sigmoid(z2);
 
-%eliminate theta0 that doesn' t factor into the regularization
-regularizationTheta = [];
+% 5000 X 26
+%add bias unit the one columns
+a2 = [ones(size(a2,1), 1) a2];
 
-%or  this is faster, note we square regulartion term in cost function, leaving out the first term 
-regularizationTheta1 = Theta1(2:end).^2;
-regularizationTheta2 = Theta2(2:end).^2;
+% 5000 X 10
+z3 = a2 * Theta2';
 
-%thetaRegularizer = (lambda/(2*m) ) * (sum(regularizationTheta1) + sum(regularizationTheta2));
-t1 = Theta1(:,2:size(Theta1,2));
-t2 = Theta2(:,2:size(Theta2,2));
+% 5000 x 10
+a3 = sigmoid(z3);
+% hx -> 5000 X 10
+hx = a3;
+% 5000 X 10
+yRowVec = zeros(m,num_labels);
 
-Reg = lambda  * (sum( sum ( t1.^ 2 )) + sum( sum ( t2.^ 2 ))) / (2*m);
-%m vectors of size num_labels
-%for each use the value of y as index, and for the current "m vector" set that mask 
-%one vs all.
-%m is 5k, 5k letters. Each example (vector 1 of 5k) has 10 rows. set the value of y 0-10 to select the right row
-ymask = zeros(num_labels, m); 
-for i=1:m,
-  ymask(y(i),i)=1;
+%create a vectory for each y
+% set of row vectors each column i szero except 1 where yval indexes into column set taht to 1.
+for i = 1:m
+    yRowVec(i,y(i)) = 1;
 end
- 
-%ymask 10 X 5000 X  1  5000 X 10
-J = 1./m * sum(sum(( -ymask' .* log(hx) - ( 1 - ymask' ) .* log ( 1 - hx) ))) + Reg;
-   
+% j 1x 1
+J = 1/m * sum(sum(-1 * yRowVec .* log(hx)-(1-yRowVec) .* log(1-hx)));
+regularator = (sum(sum(Theta1(:,2:end).^2)) + sum(sum(Theta2(:,2:end).^2))) * (lambda/(2*m));
 
+J = J + regularator;
 
-% for each training examle
-for t = 1:m 
-  % 5k X 1
- ty = y(t);
- 
- % 5k x 400
- tx = X(t);
- a1 = tx;
+%% Part 2 implementation
+for t = 1:m
 
- #{
- Theta1: 25 X 401  (25 out units each one has thetas for 400 pixel + one bias)
- Theta2: 10 X 26  10 output units each has 26 to match the out units of the previous)
- #}
- 
- a2 = sigmoid([ones(m, 1) a1] * Theta1'); 
- a3 = sigmoid([ones(m, 1) a2] * Theta2');
+  %create row vector and make it a bitmask with this y.
+  % 1 : 10 == 5 0000010000
+	TrainingSetExampleExpectedResultY = ([1:num_labels]==y(t))';
+  
+	% For the input layer, where l=1:
+	% For the hidden layers
+  %a1 -> 401 x1
+  a1 = [1; X(t,:)'];
+	
+  % z2: -> 25 x 1 /theta 1: 25 x 401 
+  z2 = Theta1 * a1;
+  
+  % a2 : 26 x 1
+	a2 = [1; sigmoid(z2)];
+	
+  % 10 x 1
+  z3 = Theta2 * a2;
+	
+  % 10 X 1
+  a3 = sigmoid(z3);
 
-%[dummy, p] = max(a2, [], 2);
+  % d3: 10 X 1
+   %a3 -> 10X1, a2 -> 26x1, a1 -> 401 X 1; TrainingSetExampleExpectedResultY -> 10 X1; note the transpose.  
+	% athree is the prediction for this example t. subtract the expected result TrainingSetExampleExpectedResultY.
+  % to get our error. that is intuitive. row vector since a3 is a row vector.
+	d3 = a3 - TrainingSetExampleExpectedResultY;
+  %d2: 25 X 1
+  % THE .* Is becaues we are applying the derative to the cost but not transforming anything.
+  % we are taking the porportion of the error and applying it here.
+	d2 = (Theta2' * d3) .* [1; sigmoidGradient(z2)];
+	d2 = d2(2:end); % Taking off the bias column
 
-
+	% d1 is not calculated because there is no relationship between the error 
+  % and the original input value. X is just x. 
+	% accumulates the errors for each training example.
+	BigDeltaTheta1Gradient = BigDeltaTheta1Gradient + d2 * a1';
+	BigDeltaTheta2Gradient= BigDeltaTheta2Gradient+ d3 * a2';
 end
+    % The error for theta.
+    % BigDeltaTheta2Gradient -> 10 X 26; BigDeltaTheta1Gradient -> 25 x 401                                         % add zeros to make it compatible for number of rows remove teh bias unit
+BigDeltaTheta1Gradient = (1/m) * BigDeltaTheta1Gradient + (lambda/m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+BigDeltaTheta2Gradient = (1/m) * BigDeltaTheta2Gradient + (lambda/m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 
-% Unroll gradients
-grad = [Theta1_grad(:) ; Theta2_grad(:)];
+
+
+% -------------------------------------------------------------
+
+% =========================================================================
+
+% Unroll gradients 10285 x 1
+grad = [BigDeltaTheta1Gradient(:) ; BigDeltaTheta2Gradient(:)];
 
 
 end
